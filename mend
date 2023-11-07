@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# mender version 0.1.0
+
+set -o pipefail -C
+
+repository="$1"
+version="$2"
+destination="${3:-./src}"
+
+if [ -z "$version" ]; then
+    echo "Usage: mend <repository> <version> [destination=src]"
+    echo
+    echo "Example:"
+    echo "  mend laravel/laravel v10.2.8"
+    echo "  mend slimphp/Slim-Skeleton 4.5.0 slim"
+    echo
+    exit 1
+fi
+
+if [ ! -d ".git" ]; then
+    echo 'Error: you are not in a git repository, we should create one.'
+    exit 1
+fi
+
+# we need a clean work tree
+if ! git diff --quiet HEAD; then
+    echo "Error: you have uncommitted changes in your work tree, commit these changes first." >&2
+    exit 1
+fi
+
+source="https://github.com/$repository/archive/refs/tags/$version.tar.gz"
+
+target_branch=`git branch --show-current`
+
+parent=`git log HEAD --pretty=format:%H -1 --grep "^$repository"`
+if [ -n "$parent" ]; then
+    git checkout --detach $parent
+    merge_opts=
+else
+    git update-ref -d refs/heads/mender/orphan
+    git checkout --orphan mender/orphan
+    merge_opts=--allow-unrelated-histories
+fi
+
+temp_path=`mktemp -d`
+temp_path_download=`mktemp -d`
+
+mkdir "$temp_path/$destination"
+
+wget -O $temp_path_download/download.tar.gz $source
+tar --strip-components=1 -xzf $temp_path_download/download.tar.gz -C $temp_path/$destination
+
+export GIT_WORK_TREE=$temp_path
+
+git add "$temp_path"
+git commit -m "$repository ($version)"
+
+mender_commit=`git rev-parse HEAD`
+git update-ref -d refs/heads/mender/orphan
+
+unset GIT_WORK_TREE
+rm -rf "$temp_path"
+rm -rf "$temp_path_download"
+
+# merge
+git checkout -f $target_branch
+git merge --no-edit $merge_opts $mender_commit
