@@ -1,10 +1,39 @@
 # Mender
-Tiny software that makes updating repositories very easy.
+A tool that makes updating your framework super easy!
 
-When using Mender, you can:
+This tiny software makes it possible to update any framework or GitHub repository that you use.
+
+Using Mender, you can:
 - download repositories from GitHub based on a specific version
-- make changes to the code, update or downgrade the repository, resolve the merge conflicts only once
-- keep track of the changes from the repository
+- make changes to the code, update or downgrade the framework, resolve the merge conflicts just once
+- keep track of the changes in the framework
+
+What does my log look like?
+```sh
+*   Added feature 5 to my project
+|
+*   Added feature 4 to my project
+|
+*   Merged laravel/laravel (v10.2.8) into project
+|\  
+| * laravel/laravel (v10.2.8)
+| |
+* | Added feature 3 to my project
+| |
+* | Merged laravel/laravel (v10.2.4) into project
+|\|
+| * laravel/laravel (v10.2.4)
+| |
+* | Added feature 2 to my project
+| |
+* | Added feature 1 to my project
+| |
+* | Merged laravel/laravel (v9.5.2) into project
+|\|
+| * laravel/laravel (v9.5.2)
+|
+*   Initialized a new project using ronvanderheijden/mender
+```
 
 ## Requirements
 To use Mender, you only need [Git](https://git-scm.com/downloads) installed.
